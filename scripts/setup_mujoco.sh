@@ -18,6 +18,7 @@ MUJOCO_WARP_COMMIT="09ec1da"
 
 # Parse command-line arguments
 INSTALL_WARP=true  # Default: install warp (GPU-accelerated)
+INSTALL_ROBOT_SDKS=true
 
 while [[ $# -gt 0 ]]; do
   case $1 in
@@ -26,28 +27,37 @@ while [[ $# -gt 0 ]]; do
       echo "MuJoCo Warp (GPU) installation disabled - CPU-only mode"
       shift
       ;;
+    --no-robot-sdks)
+      INSTALL_ROBOT_SDKS=false
+      echo "Robot SDK installation disabled (unitree, booster)"
+      shift
+      ;;
     --help|-h)
-      echo "Usage: $0 [--no-warp]"
+      echo "Usage: $0 [--no-warp] [--no-robot-sdks]"
       echo ""
       echo "Options:"
-      echo "  --no-warp      Skip MuJoCo Warp installation (CPU-only)"
-      echo "  --help, -h     Show this help message"
+      echo "  --no-warp          Skip MuJoCo Warp installation (CPU-only)"
+      echo "  --no-robot-sdks    Skip robot SDK installation (unitree, booster)"
+      echo "  --help, -h         Show this help message"
       echo ""
-      echo "Default: GPU-accelerated installation (WarpBackend + ClassicBackend)"
+      echo "Default: GPU-accelerated installation with robot SDKs"
       echo ""
       echo "Examples:"
-      echo "  # Initial setup (default: with GPU acceleration)"
+      echo "  # Initial setup (default: with GPU acceleration + robot SDKs)"
       echo "  $0"
       echo ""
       echo "  # Setup without GPU acceleration (CPU-only)"
       echo "  $0 --no-warp"
+      echo ""
+      echo "  # Setup for simulator-only training, avoiding GitHub robot SDK wheels"
+      echo "  $0 --no-warp --no-robot-sdks"
       echo ""
       echo "Note: GPU acceleration requires NVIDIA driver >= 555.58.02"
       exit 0
       ;;
     *)
       echo "Unknown option: $1"
-      echo "Usage: $0 [--no-warp]"
+      echo "Usage: $0 [--no-warp] [--no-robot-sdks]"
       echo "Use --help for more information"
       exit 1
       ;;
@@ -138,11 +148,19 @@ if [[ ! -f $SENTINEL_FILE ]]; then
   # Install Holosoma packages
   echo "Installing Holosoma packages"
   pip install -U pip
-  if [[ "$OS_NAME" == "Linux" ]]; then
+  if [[ "$INSTALL_ROBOT_SDKS" == "true" && "$OS_NAME" == "Linux" ]]; then
     pip install -e "$ROOT_DIR/src/holosoma[unitree, booster]"
   elif [[ "$OS_NAME" == "Darwin" ]]; then
-    echo "Warning: only unitree support for osx"
-    pip install -e "$ROOT_DIR/src/holosoma[unitree]"
+    if [[ "$INSTALL_ROBOT_SDKS" == "true" ]]; then
+      echo "Warning: only unitree support for osx"
+      pip install -e "$ROOT_DIR/src/holosoma[unitree]"
+    else
+      echo "Installing holosoma without robot SDK extras."
+      pip install -e "$ROOT_DIR/src/holosoma"
+    fi
+  elif [[ "$INSTALL_ROBOT_SDKS" == "false" && "$OS_NAME" == "Linux" ]]; then
+    echo "Installing holosoma without robot SDK extras."
+    pip install -e "$ROOT_DIR/src/holosoma"
   else
     echo "Unsupported OS: $OS_NAME"
     exit 1

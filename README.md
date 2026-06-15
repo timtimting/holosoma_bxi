@@ -6,7 +6,7 @@ Holosoma (Greek: "whole-body") is a comprehensive humanoid robotics framework fo
 
 - **Multi-simulator support**: IsaacGym, IsaacSim, MuJoCo Warp (MJWarp), and MuJoCo (inference only)
 - **Multiple RL algorithms**: PPO and FastSAC
-- **Robot support**: Unitree G1 and Booster T1 humanoids
+- **Robot support**: Unitree G1, Booster T1, and BXI Elf3 humanoids
 - **Task types**: Locomotion (velocity tracking) and whole-body tracking
 - **Sim-to-sim and sim-to-real deployment**: Shared inference pipeline across simulation and real robot control
 - **Motion retargeting**: Convert human motion capture data to robot motions while preserving interactions with objects and terrain
@@ -64,6 +64,17 @@ python src/holosoma/holosoma/train_agent.py \
     exp:g1-29dof-fast-sac \
     simulator:isaacgym \
     logger:wandb \
+    --training.seed 1
+```
+
+Train an Elf3 robot with PPO on MuJoCo:
+
+```bash
+source scripts/source_mujoco_setup.sh
+python src/holosoma/holosoma/train_agent.py \
+    exp:elf3-29dof \
+    simulator:mujoco \
+    logger:disabled \
     --training.seed 1
 ```
 

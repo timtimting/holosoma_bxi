@@ -1,6 +1,7 @@
 """Default command manager configurations."""
 
 from holosoma.config_values.loco.g1.command import g1_29dof_command
+from holosoma.config_values.loco.elf3.command import elf3_29dof_command
 from holosoma.config_values.loco.t1.command import t1_29dof_command
 from holosoma.config_values.wbt.g1.command import (
     g1_29dof_wbt_command,
@@ -11,6 +12,7 @@ none = None
 
 DEFAULTS = {
     "none": none,
+    "elf3_29dof": elf3_29dof_command,
     "t1_29dof": t1_29dof_command,
     "g1_29dof": g1_29dof_command,
     "g1_29dof_wbt": g1_29dof_wbt_command,

@@ -30,8 +30,8 @@ class CommandRegistry:
             glfw.KEY_S: ("backward_command", lambda: self._adjust_command(0, -0.1)),
             glfw.KEY_A: ("left_command", lambda: self._adjust_command(1, -0.1)),
             glfw.KEY_D: ("right_command", lambda: self._adjust_command(1, 0.1)),
-            glfw.KEY_Q: ("heading_left_command", lambda: self._adjust_command(3, -0.1)),
-            glfw.KEY_E: ("heading_right_command", lambda: self._adjust_command(3, 0.1)),
+            glfw.KEY_Q: ("heading_left_command", lambda: self._adjust_heading_command(-0.1)),
+            glfw.KEY_E: ("heading_right_command", lambda: self._adjust_heading_command(0.1)),
             glfw.KEY_Z: ("zero_command", lambda: self._zero_commands()),
             glfw.KEY_X: ("walk_stand_toggle", lambda: self._toggle_command(4)),
             glfw.KEY_U: ("height_up", lambda: self._adjust_command(8, 0.1)),
@@ -85,14 +85,45 @@ class CommandRegistry:
 
         return False
 
+    def _command_width(self) -> int:
+        """Return command tensor width, or 0 when commands are not initialized."""
+        if self.simulator.commands is None:
+            logger.warning("Commands are not initialized yet, ignoring key press.")
+            return 0
+        return self.simulator.commands.shape[1]
+
     def _adjust_command(self, index: int, delta: float):
         """Adjust command value by delta."""
+        width = self._command_width()
+        if width == 0:
+            return
+        if index >= width:
+            logger.warning(
+                f"Command index {index} is unavailable for command shape {self.simulator.commands.shape}; ignoring."
+            )
+            return
         self.simulator.commands[:, index] += delta
+
+    def _adjust_heading_command(self, delta: float):
+        """Adjust yaw command for 3D locomotion commands or legacy 9D commands."""
+        heading_index = 2 if self._command_width() == 3 else 3
+        self._adjust_command(heading_index, delta)
 
     def _toggle_command(self, index: int):
         """Toggle command value between 0 and 1."""
+        width = self._command_width()
+        if width == 0:
+            return
+        if index >= width:
+            logger.warning(
+                f"Command index {index} is unavailable for command shape {self.simulator.commands.shape}; ignoring."
+            )
+            return
         self.simulator.commands[:, index] = 1 - self.simulator.commands[:, index]
 
     def _zero_commands(self):
         """Zero out movement commands."""
-        self.simulator.commands[:, :4] = 0
+        width = self._command_width()
+        if width == 0:
+            return
+        self.simulator.commands[:, : min(4, width)] = 0
