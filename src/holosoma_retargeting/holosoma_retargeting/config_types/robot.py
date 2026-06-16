@@ -18,6 +18,7 @@ class RobotDefaults(TypedDict):
 _ROBOT_DEFAULTS: dict[str, RobotDefaults] = {
     "g1": {"robot_dof": 29, "robot_height": 1.32, "object_name": "ground"},
     "t1": {"robot_dof": 23, "robot_height": 1.2, "object_name": "ground"},
+    "elf3": {"robot_dof": 29, "robot_height": 1.45, "object_name": "ground"},
 }
 
 
@@ -154,6 +155,17 @@ class RobotConfig:
                 "left_foot_sphere_5_link",
                 "right_foot_sphere_5_link",
             ]
+        if self.robot_type == "elf3":
+            return [
+                "left_foot_heel_outer_link",
+                "right_foot_heel_outer_link",
+                "left_foot_heel_inner_link",
+                "right_foot_heel_inner_link",
+                "left_foot_toe_outer_link",
+                "right_foot_toe_outer_link",
+                "left_foot_toe_inner_link",
+                "right_foot_toe_inner_link",
+            ]
         raise ValueError(f"Invalid robot type: {self.robot_type}")
 
     FOOT_STICKING_LINKS = property(
@@ -179,6 +191,14 @@ class RobotConfig:
                     "33": -0.1,  # left wrist
                     "34": -0.1,
                     "35": -0.05,
+                }
+            )
+        if self.robot_type == "elf3":
+            base.update(
+                {
+                    "7": -0.2,  # waist pitch
+                    "8": -0.2,  # waist roll
+                    "9": -0.5,  # waist yaw
                 }
             )
 
@@ -207,6 +227,14 @@ class RobotConfig:
                     "35": 0.05,
                 }
             )
+        if self.robot_type == "elf3":
+            base.update(
+                {
+                    "7": 0.2,  # waist pitch
+                    "8": 0.2,  # waist roll
+                    "9": 0.5,  # waist yaw
+                }
+            )
 
         return base
 
@@ -219,6 +247,8 @@ class RobotConfig:
 
         if self.robot_type == "g1":
             return {"19": 0.2, "20": 0.2}  # waist yaw, waist roll
+        if self.robot_type == "elf3":
+            return {"7": 0.2, "8": 0.2, "9": 0.1}  # waist pitch, roll, yaw
         return {}
 
     MANUAL_COST = property(_manual_cost, doc="Get manual cost weights.")
@@ -232,6 +262,8 @@ class RobotConfig:
             return np.arange(19)
         if self.robot_type == "t1":
             return np.concatenate([np.arange(7), np.arange(11, 23)])
+        if self.robot_type == "elf3":
+            return np.arange(22)
         # Default: return empty array if robot type not defined (nominal tracking not used)
         return np.array([], dtype=int)
 

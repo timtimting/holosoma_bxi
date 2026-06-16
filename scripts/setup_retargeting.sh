@@ -66,6 +66,10 @@ if [[ ! -f $SENTINEL_FILE ]]; then
 
   # Install holosoma_retargeting
   pip install -U pip
+  # Retargeting uses torch for data/model utilities but does not need CUDA.
+  # Install the CPU wheel first so the editable package install does not pull
+  # the much larger CUDA-enabled torch dependency set from PyPI.
+  pip install torch --index-url https://download.pytorch.org/whl/cpu
   pip install -e $ROOT_DIR/src/holosoma_retargeting
   touch $SENTINEL_FILE
 fi

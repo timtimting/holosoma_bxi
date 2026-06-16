@@ -143,7 +143,11 @@ class InteractionMeshRetargeter:
         # Create complete limits with floating base (-inf, inf) and actuated joint limits
         n_floating_base = 7
         joint_names = [self.robot_model.joint(i).name for i in range(self.robot_model.njnt)]
-        actuated_joints = [(i, name) for i, name in enumerate(joint_names) if name]  # Filter out None names
+        actuated_joints = [
+            (i, name)
+            for i, name in enumerate(joint_names)
+            if name and self.robot_model.jnt_type[i] != mujoco.mjtJoint.mjJNT_FREE
+        ]
 
         large_number = 1e6
         complete_lower_limits = np.concatenate(
